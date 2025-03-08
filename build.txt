@@ -1,0 +1,3 @@
+displayName = 镜月OS
+author = MiroonStudio
+version = 0.1
