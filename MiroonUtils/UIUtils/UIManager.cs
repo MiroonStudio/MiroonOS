@@ -1,4 +1,6 @@
-﻿namespace MiroonOS.MiroonUtils.UIUtils
+﻿using Terraria.Audio;
+
+namespace MiroonOS.MiroonUtils.UIUtils
 {
     public class UIManager : ModSystem
     {
@@ -90,12 +92,16 @@
                                     if (isClicked)
                                     {
                                         ClickedButton = baseButton;
+                                        baseButton.ButtonClickedEven?.Invoke();
+                                        if(baseButton.ButtonPlaySound != null)
+                                        {
+                                            SoundEngine.PlaySound(new SoundStyle(baseButton.ButtonPlaySound) { Volume = 1f }, Main.LocalPlayer.Center);
+                                        }
                                     }
 
                                     if (isHovered)
                                     {
                                         HoverButton = baseButton;
-                                        baseButton.ButtonClickedEven?.Invoke();
                                     }
 
                                     goto FoundButton;
@@ -112,17 +118,22 @@
         /// <summary>
         /// 用于更新面板的方法
         /// </summary>
-        /// <param name="baseButton"></param>
         /// <param name="basePanel"></param>
         public static void UpdatePanels(BasePanel basePanel)
         {
-            if(basePanel != null && basePanel.Active && basePanel.Visible)
+            if (basePanel != null && basePanel.Active && basePanel.Visible)
             {
-                if ((bool)(basePanel.PreUpdate?.Invoke()))
+                if (basePanel.PreUpdate != null && (bool)basePanel.PreUpdate.Invoke())
                 {
-                    basePanel.Update?.Invoke();
+                    if (basePanel.Update != null)
+                    {
+                        basePanel.Update?.Invoke();
+                    }
                 }
-                basePanel.PostUpdate?.Invoke();
+                if (basePanel.PostUpdate != null)
+                {
+                    basePanel.PostUpdate?.Invoke();
+                }
             }
         }
         /// <summary>
@@ -133,13 +144,21 @@
         {
             if (baseButton != null && baseButton.ButtonActive && baseButton.ButtonVisible)
             {
-                if ((bool)(baseButton.PreUpdate?.Invoke()))
+                if (baseButton.PreUpdate != null && (bool)baseButton.PreUpdate.Invoke() == true)
                 {
-                    baseButton.Update?.Invoke();
+                    if(baseButton.Update != null)
+                    {
+                        baseButton.Update?.Invoke();
+                    }
                 }
-                baseButton.PostUpdate?.Invoke();
+                if (baseButton.PostUpdate != null)
+                {
+                    baseButton.PostUpdate?.Invoke();
+                }
             }
         }
+
+
         /// <summary>
         /// 创建一个新的 UI
         /// </summary>

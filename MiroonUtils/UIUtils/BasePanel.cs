@@ -11,6 +11,11 @@
         public Action Update;
 
         /// <summary>
+        /// 中心位置
+        /// </summary>
+        public Vector2 PanelCenter;
+
+        /// <summary>
         /// 更新前的函数
         /// </summary>
         public Func<bool> PreUpdate;
@@ -19,11 +24,6 @@
         /// 每帧更新后的函数
         /// </summary>
         public Action PostUpdate;
-
-        /// <summary>
-        /// 面板位置
-        /// </summary>
-        public Vector2 Pos;
 
         /// <summary>
         /// 正常时的纹理
@@ -44,11 +44,6 @@
         /// 是否占满屏幕绘制（默认false）
         /// </summary>
         public bool FullScreen = false;
-
-        /// <summary>
-        /// 面板大小
-        /// </summary>
-        public Vector2 Size;
 
         /// <summary>
         /// 面板颜色
@@ -76,20 +71,37 @@
         public bool Active = true;
 
         /// <summary>
+        /// 面板大小
+        /// </summary>
+        public Vector2 PanelSize;
+
+        /// <summary>
         /// 绘制面板
         /// </summary>
         /// <param name="spriteBatch"></param>
         public void Draw(SpriteBatch spriteBatch)
         {
             Color color = Visible ? Panelcolor : Color.Gray;
-            spriteBatch.Draw(PanelTex, Pos, null, color, PanelRot, new Vector2(PanelTex.Width / 2, PanelTex.Height / 2), Size, SpriteEffects.None, 1f);
-            foreach (BaseButton baseButton in SubButtonsList)
-            {
-                if (baseButton != null && baseButton.ButtonActive && baseButton.ButtonCanDraw)
-                {
-                    baseButton.Draw(spriteBatch);
-                }
-            }
+            Texture2D texture = PanelTex;
+
+            Vector2 drawPosition = new(
+                PanelCenter.X,
+                PanelCenter.Y
+            );
+
+            EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
+            Main.spriteBatch.Draw(
+                texture,
+                drawPosition,
+                null,
+                color,
+                PanelRot,
+                new Vector2(texture.Width / 2, texture.Height / 2),
+                PanelSize,
+                SpriteEffects.None,
+                1f
+            );
+            EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
         }
 
         /// <summary>
@@ -103,6 +115,7 @@
                 if (baseButton != null && baseButton.ButtonActive && baseButton.ButtonCanDraw)
                 {
                     baseButton.Draw(spriteBatch);
+                    baseButton.DrawOther?.Invoke(spriteBatch);
                 }
             }
         }
@@ -127,10 +140,10 @@
         /// <summary>
         /// 添加一个新的按钮
         /// </summary>
+        /// <param name="ButtonCenter">位置</param>
         /// <param name="Size">大小</param>
         /// <param name="color">颜色</param>
         /// <param name="Name">名称</param>
-        /// <param name="ShowText">显示的文本</param>
         /// <param name="CanDraw">是否绘制</param>
         /// <param name="Visible">是否启用</param>
         /// <param name="PlayerSound">碰到时播放的声音</param>
@@ -138,9 +151,9 @@
         /// <param name="texture">正常时的贴图</param>
         /// <param name="texture_Hover">悬停时的贴图</param>
         /// <returns>成功返回实例，不成功返回 null 并在终端留下痕迹</returns>
-        public BaseButton NewButton(Vector2 Size, Color color, string Name, string ShowText, bool CanDraw, bool Visible, string PlayerSound, float Rot, Texture2D texture, Texture2D texture_Hover)
+        public BaseButton NewButton(Vector2 ButtonCenter, Vector2 Size, Color color, string Name, bool CanDraw, bool Visible, string PlayerSound, float Rot, Texture2D texture, Texture2D texture_Hover)
         {
-            if (FindSubButton(Name) is null)
+            if (FindSubButton(Name) is not null)
             {
                 Console.WriteLine($"来自 {this} 的错误：添加新面板“{PanelName}”时发现其 UI 列表“{this}”中已存在同名面板");
                 return null;
@@ -152,13 +165,13 @@
                 ButtonCanDraw = CanDraw,
                 ButtonVisible = Visible,
                 ButtonName = Name,
-                ButtonShowText = ShowText,
                 ButtonSize = Size,
                 ButtonColor = color,
                 ButtonPlaySound = PlayerSound,
                 ButtonRot = Rot,
                 ButtonTex = texture,
-                ButtonTex_Hover = texture_Hover
+                ButtonTex_Hover = texture_Hover,
+                ButtonCenter = ButtonCenter
             };
             SubButtonsList.Add(baseButton);
             return baseButton;

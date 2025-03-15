@@ -1,4 +1,6 @@
-﻿namespace MiroonOS.MiroonUtils.CountBuffUtils
+﻿using MiroonOS.MiroonUtils.UIUtils;
+
+namespace MiroonOS.MiroonUtils.CountBuffUtils
 {
     /// <summary>
     /// 一个抽象类，用于继承然后制作一个可以叠加层数的 Buff
@@ -8,7 +10,7 @@
         /// <summary>
         /// 派生出的Type
         /// </summary>
-        private static Dictionary<string, int> buffTypeMap = new();
+        private static Dictionary<string, int> buffTypeMap = [];
 
         /// <summary>
         /// 设置属性时被调用一次
@@ -55,10 +57,46 @@
         /// <summary>
         /// 在添加到 NPC 身上时触发一次
         /// </summary>
-        public virtual void OnAddNPC(NPC npc)
-        {
+        public virtual void OnAddNPC(NPC npc) { }
+        /// <summary>
+        /// 在添加到 Player 身上时触发一次
+        /// </summary>
+        /// <param name="player"></param>
+        public virtual void OnAddPlayer(Player player) { }
 
-        }
+
+        /// <summary>
+        /// 每层结束前（返回 false 可以阻止结算）
+        /// </summary>
+        /// <param name="npc"></param>
+        public virtual bool PreCountPerEnd(NPC npc) { return true; }
+        /// <summary>
+        /// 在每层结束时（结算前，但是还没更新数据）
+        /// </summary>
+        /// <param name="npc"></param>
+        public virtual void OnCountPerEnd(NPC npc) { }
+        /// <summary>
+        /// 每层结束后（这里已经结算并更新数据）
+        /// </summary>
+        /// <param name="npc"></param>
+        public virtual void PostCountPerEnd(NPC npc) { }
+
+
+        /// <summary>
+        /// 每层结束前（返回 false 可以阻止结算）
+        /// </summary>
+        /// <param name="Player "></param>
+        public virtual bool PreCountPerEnd(Player Player) { return true; }
+        /// <summary>
+        /// 在每层结束时（结算前，但是还没更新数据）
+        /// </summary>
+        /// <param name="Player "></param>
+        public virtual void OnCountPerEnd(Player Player) { }
+        /// <summary>
+        /// 每层结束后（这里已经结算并更新数据）
+        /// </summary>
+        /// <param name="Player "></param>
+        public virtual void PostCountPerEnd(Player Player) { }
 
         /// <summary>
         /// 在结束之前触发
@@ -107,11 +145,6 @@
         public ModCountBuff Buff;
 
         /// <summary>
-        /// 拥有者索引
-        /// </summary>
-        public CountBuffList buffList = new();
-
-        /// <summary>
         /// 这个 Buff 的层数
         /// </summary>
         public int BuffCount = 0;
@@ -141,10 +174,14 @@
         /// </summary>
         /// <param name="npc"></param>
         /// <param name="time"></param>
-        public virtual void Update(NPC npc, int time)
-        {
+        public virtual void Update(NPC npc, int time) { }
 
-        }
+        /// <summary>
+        /// 在 NPC 上时每帧调用一次
+        /// </summary>
+        /// <param name="Player"></param>
+        /// <param name="time"></param>
+        public virtual void Update(Player Player, int time) { }
 
         /// <summary>
         /// 动态绘制 Buff 贴图的方法。
@@ -193,6 +230,63 @@
 
             Utils.DrawBorderStringFourWay(
                 spriteBatch,
+                FontAssets.ItemStack.Value,
+                BuffCount.ToString(),
+                position.X + buffWidth / 2 + 10,
+                position.Y + buffHeight / 2,
+                Color.White,
+                Color.Black,
+                Vector2.Zero
+            );
+        }
+
+        /// <summary>
+        /// 动态绘制 Buff 贴图的方法。
+        /// 该方法会根据当前 Player 的位置和 Buff 的数量，动态调整贴图的绘制位置，
+        /// 确保所有 Buff 贴图以 Player 正下方为中心对称分布。
+        /// </summary>
+        /// <param name="Player">拥有该 Buff 的 Player 对象。</param>
+        /// <param name="spriteBatch">用于绘制贴图的 SpriteBatch 对象。</param>
+        /// <param name="index">当前 Buff 在总 Buff 列表中的索引。</param>
+        /// <param name="totalBuffs">当前 Player 拥有的总 Buff 数量。</param>
+        public virtual void Draw(Player Player, int index, int totalBuffs)
+        {
+
+            Texture2D texture = ModContent.Request<Texture2D>(Texture).Value;
+            if (texture == null) return;
+
+            int buffWidth = texture.Width;
+            int buffHeight = texture.Height;
+
+            int spacing = 10;
+
+            int totalWidth = totalBuffs * buffWidth + (totalBuffs - 1) * spacing;
+
+            float offset = (totalWidth - buffWidth) / 2f;
+
+            float horizontalOffset = index * (buffWidth + spacing) - offset;
+
+
+            Vector2 position = new Vector2(
+                Player.Center.X - Main.screenPosition.X - buffWidth / 2 + horizontalOffset,
+                Player.Center.Y - Main.screenPosition.Y + Player.height / 2 + buffHeight
+            );
+            EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
+            Main.spriteBatch.Draw(
+                texture,
+                position,
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                1f,
+                SpriteEffects.None,
+                0f
+            );
+            EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
+
+            Utils.DrawBorderStringFourWay(
+                Main.spriteBatch,
                 FontAssets.ItemStack.Value,
                 BuffCount.ToString(),
                 position.X + buffWidth / 2 + 10,

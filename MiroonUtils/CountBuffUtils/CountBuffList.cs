@@ -13,15 +13,15 @@
         /// <summary>
         /// 这个数组的拥有者索引
         /// </summary>
-        public NPC TargetNPC;
+        public Entity Target;
 
         /// <summary>
         /// 添加索引
         /// </summary>
-        /// <param name="targetNPC">索引</param>
-        public CountBuffList(NPC targetNPC)
+        /// <param name="target">索引</param>
+        public CountBuffList(NPC target)
         {
-            TargetNPC = targetNPC;
+            Target = target;
         }
 
         public CountBuffList()

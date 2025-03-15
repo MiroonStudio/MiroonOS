@@ -19,9 +19,13 @@
         {
             foreach (BasePanel basePanel in SubPanels)
             {
-                if (basePanel != null && basePanel.CanDraw)
+                if (basePanel != null)
                 {
-                    basePanel.Draw(spriteBatch);
+                    if(basePanel.CanDraw)
+                    {
+                        basePanel.Draw(spriteBatch);
+                    }
+                    basePanel.DrawSubButton(spriteBatch);
                 }
             }
         }
@@ -51,9 +55,9 @@
                 CanDraw = CanDraw,
                 FullScreen = FullScreen,
                 Panelcolor = DrawColor,
-                Size = Size,
+                PanelSize = Size,
                 Visible = Visible,
-                Pos = Pos,
+                PanelCenter = Pos,
                 PanelName = PanelName,
                 PanelRot = PanleRot,
                 PanelTex = texture,

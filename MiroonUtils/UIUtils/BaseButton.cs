@@ -1,4 +1,7 @@
-﻿namespace MiroonOS.MiroonUtils.UIUtils
+﻿using Terraria.Audio;
+using Terraria;
+
+namespace MiroonOS.MiroonUtils.UIUtils
 {
     /// <summary>
     /// 基本按钮类
@@ -20,6 +23,8 @@
         /// </summary>
         public Func<bool> PreUpdate;
 
+        public Action<SpriteBatch> DrawOther;
+
         /// <summary>
         /// 每帧更新后的函数
         /// </summary>
@@ -28,7 +33,7 @@
         /// <summary>
         /// 按钮位置
         /// </summary>
-        public Vector2 Pos;
+        public Vector2 ButtonCenter;
 
         /// <summary>
         /// 按钮播放的声音
@@ -48,12 +53,7 @@
         /// <summary>
         /// 按钮大小
         /// </summary>
-        public Vector2 ButtonSize = new(120, 40);
-
-        /// <summary>
-        /// 按钮上的文本
-        /// </summary>
-        public string ButtonShowText;
+        public Vector2 ButtonSize = new Vector2(1f,1f);
 
         /// <summary>
         /// 名字
@@ -96,30 +96,53 @@
         public float ButtonRot = 0f;
 
         /// <summary>
+        /// 检测鼠标是否悬停在按钮上
+        /// </summary>
+        /// <returns></returns>
+        public bool Hovered()
+        {
+            // 创建矩形区域
+            Rectangle buttonRectangle = new(
+                (int)(ButtonCenter.X - ButtonTex.Width / 2), 
+                (int)(ButtonCenter.Y - ButtonTex.Height / 2),
+                ButtonTex.Width,
+                ButtonTex.Height
+            );
+
+            // 获取鼠标位置
+            Point mousePosition = new(Main.mouseX, Main.mouseY);
+
+            // 检测鼠标是否在矩形区域内
+            return buttonRectangle.Contains(mousePosition);
+        }
+
+        /// <summary>
         /// 绘制
         /// </summary>
         /// <param name="spriteBatch"></param>
         public void Draw(SpriteBatch spriteBatch)
         {
             Color color = ButtonVisible ? ButtonColor : Color.Gray;
-            Texture2D texture = IsHove ? ButtonTex_Hover : ButtonTex;
-            spriteBatch.Draw(texture, Pos, null, color, ButtonRot, new Vector2(texture.Width / 2, texture.Height / 2), ButtonSize, SpriteEffects.None, 1f);
-        }
-        public bool Hovered()
-        {
-            // 创建矩形区域
-            Rectangle buttonRectangle = new Rectangle(
-                (int)Pos.X,
-                (int)Pos.Y,
-                ButtonTex.Width,
-                ButtonTex.Height
+            Texture2D texture = Hovered() ? ButtonTex_Hover : ButtonTex;
+
+            Vector2 drawPosition = new(
+                ButtonCenter.X,
+                ButtonCenter.Y
             );
 
-            // 获取鼠标位置
-            Point mousePosition = new Point(Main.mouseX, Main.mouseY);
-
-            // 检测鼠标是否在矩形区域内
-            return buttonRectangle.Contains(mousePosition);
+            EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
+            Main.spriteBatch.Draw(
+                texture,
+                drawPosition,
+                null,
+                color,
+                ButtonRot,
+                new Vector2(texture.Width / 2, texture.Height / 2),
+                ButtonSize,
+                SpriteEffects.None,
+                1f
+            );
+            EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
         }
 
         /// <summary>
@@ -128,11 +151,12 @@
         /// <returns></returns>
         public bool Clicked()
         {
-            if (!ButtonVisible)
+            if (!ButtonVisible || !ButtonActive)
                 return false;
 
             if (Hovered() && UIManager.LeftClicked)
             {
+                Main.LocalPlayer.controlUseItem = false;
                 return true;
             }
             return false;
