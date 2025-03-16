@@ -1,1 +1,5 @@
-Modify this file with a description of your mod.
+﻿这是一个 API 模组，包含了一些拓展，同时这是还未上线的模组“TerrCorp（泰拉公司）”的前置模组
+包含：
+- 一个完全独立于原版的 UI 集成库
+- 一个完全独立于原版的可叠加层数的 Buff 集成库
+- 一些奇奇怪怪的拓展

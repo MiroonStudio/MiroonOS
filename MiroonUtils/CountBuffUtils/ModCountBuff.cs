@@ -1,4 +1,6 @@
 ﻿using MiroonOS.MiroonUtils.UIUtils;
+using System;
+using Terraria;
 
 namespace MiroonOS.MiroonUtils.CountBuffUtils
 {
@@ -183,93 +185,37 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
         /// <param name="time"></param>
         public virtual void Update(Player Player, int time) { }
 
-        /// <summary>
-        /// 动态绘制 Buff 贴图的方法。
-        /// 该方法会根据当前 NPC 的位置和 Buff 的数量，动态调整贴图的绘制位置，
-        /// 确保所有 Buff 贴图以 NPC 正下方为中心对称分布。
-        /// </summary>
-        /// <param name="npc">拥有该 Buff 的 NPC 对象。</param>
-        /// <param name="spriteBatch">用于绘制贴图的 SpriteBatch 对象。</param>
-        /// <param name="index">当前 Buff 在总 Buff 列表中的索引。</param>
-        /// <param name="totalBuffs">当前 NPC 拥有的总 Buff 数量。</param>
-        public virtual void Draw(NPC npc, SpriteBatch spriteBatch, int index, int totalBuffs)
+        public virtual void OnHover() 
         {
-
-            Texture2D texture = ModContent.Request<Texture2D>(Texture).Value;
-            if (texture == null) return;
-
-            int buffWidth = texture.Width;
-            int buffHeight = texture.Height;
-
-            int spacing = 10;
-
-            int totalWidth = totalBuffs * buffWidth + (totalBuffs - 1) * spacing;
-
-            float offset = (totalWidth - buffWidth) / 2f;
-
-            float horizontalOffset = index * (buffWidth + spacing) - offset;
-
-
-            Vector2 position = new Vector2(
-                npc.Center.X - Main.screenPosition.X - buffWidth / 2 + horizontalOffset,
-                npc.Center.Y - Main.screenPosition.Y + npc.height / 2 + buffHeight
-            );
-
-            spriteBatch.Draw(
-                texture,
-                position,
-                null,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                1f,
-                SpriteEffects.None,
-                0f
-            );
-
-
+            Vector2 mousePosition = new Vector2(Main.mouseX, Main.mouseY);
             Utils.DrawBorderStringFourWay(
-                spriteBatch,
+                Main.spriteBatch,
                 FontAssets.ItemStack.Value,
-                BuffCount.ToString(),
-                position.X + buffWidth / 2 + 10,
-                position.Y + buffHeight / 2,
+                "这层 Buff 剩余时间：" + (Time / 60),
+                mousePosition.X,
+                mousePosition.Y,
                 Color.White,
                 Color.Black,
                 Vector2.Zero
             );
         }
 
-        /// <summary>
-        /// 动态绘制 Buff 贴图的方法。
-        /// 该方法会根据当前 Player 的位置和 Buff 的数量，动态调整贴图的绘制位置，
-        /// 确保所有 Buff 贴图以 Player 正下方为中心对称分布。
-        /// </summary>
-        /// <param name="Player">拥有该 Buff 的 Player 对象。</param>
-        /// <param name="spriteBatch">用于绘制贴图的 SpriteBatch 对象。</param>
-        /// <param name="index">当前 Buff 在总 Buff 列表中的索引。</param>
-        /// <param name="totalBuffs">当前 Player 拥有的总 Buff 数量。</param>
-        public virtual void Draw(Player Player, int index, int totalBuffs)
+        public virtual void Draw(NPC npc, int index, int totalBuffs)
         {
-
             Texture2D texture = ModContent.Request<Texture2D>(Texture).Value;
             if (texture == null) return;
 
             int buffWidth = texture.Width;
             int buffHeight = texture.Height;
-
             int spacing = 10;
 
             int totalWidth = totalBuffs * buffWidth + (totalBuffs - 1) * spacing;
-
             float offset = (totalWidth - buffWidth) / 2f;
-
             float horizontalOffset = index * (buffWidth + spacing) - offset;
 
-
             Vector2 position = new Vector2(
-                Player.Center.X - Main.screenPosition.X - buffWidth / 2 + horizontalOffset,
-                Player.Center.Y - Main.screenPosition.Y + Player.height / 2 + buffHeight
+                npc.Center.X - Main.screenPosition.X - buffWidth / 2 + horizontalOffset,
+                npc.Center.Y - Main.screenPosition.Y + npc.height / 2 + buffHeight
             );
             EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
             Main.spriteBatch.Draw(
@@ -283,7 +229,61 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
                 SpriteEffects.None,
                 0f
             );
+            Utils.DrawBorderStringFourWay(
+                Main.spriteBatch,
+                FontAssets.ItemStack.Value,
+                BuffCount.ToString(),
+                position.X + buffWidth / 2 + 10,
+                position.Y + buffHeight / 2,
+                Color.White,
+                Color.Black,
+                Vector2.Zero
+            );
+
+            Vector2 mousePosition = new Vector2(Main.mouseX, Main.mouseY);
+
+            Rectangle buffRect = new Rectangle(
+                (int)position.X,
+                (int)position.Y,
+                buffWidth,
+                buffHeight
+            );
+
+            if (buffRect.Contains((int)mousePosition.X, (int)mousePosition.Y))
+            {
+                OnHover();
+            }
+        }
+
+        public virtual void Draw(Player player, int index, int totalBuffs)
+        {
+            Texture2D texture = ModContent.Request<Texture2D>(Texture).Value;
+            if (texture == null) return;
+
+            int buffWidth = texture.Width;
+            int buffHeight = texture.Height;
+            int spacing = 10;
+
+            int totalWidth = totalBuffs * buffWidth + (totalBuffs - 1) * spacing;
+            float offset = (totalWidth - buffWidth) / 2f;
+            float horizontalOffset = index * (buffWidth + spacing) - offset;
+
+            Vector2 position = new Vector2(
+                player.Center.X - Main.screenPosition.X - buffWidth / 2 + horizontalOffset,
+                player.Center.Y - Main.screenPosition.Y + player.height / 2 + buffHeight
+            );
             EasyDraw.AnotherDraw(BlendState.NonPremultiplied);
+            Main.spriteBatch.Draw(
+                texture,
+                position,
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                1f,
+                SpriteEffects.None,
+                0f
+            );
 
             Utils.DrawBorderStringFourWay(
                 Main.spriteBatch,
@@ -295,6 +295,19 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
                 Color.Black,
                 Vector2.Zero
             );
+
+            Vector2 mousePosition = new Vector2(Main.mouseX, Main.mouseY);
+
+            Rectangle buffRect = new Rectangle(
+                (int)position.X,
+                (int)position.Y,
+                buffWidth,
+                buffHeight
+            );
+            if (buffRect.Contains((int)mousePosition.X, (int)mousePosition.Y))
+            {
+                OnHover(); 
+            }
         }
     }
 }

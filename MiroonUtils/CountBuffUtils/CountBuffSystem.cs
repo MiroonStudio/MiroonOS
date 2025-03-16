@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Terraria.DataStructures;
 
 namespace MiroonOS.MiroonUtils.CountBuffUtils
 {
@@ -90,15 +91,15 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
                 {
                     modbuff.Update(npc, modbuff.Time);
                     modbuff.Time--;
-                    modbuff.Draw(npc, spriteBatch, i, buffList.BuffType.Count);
+                    modbuff.Draw(npc, i, buffList.BuffType.Count);
                 }
             }
         }
     }
 
-    public class PlayerCountBuffModPlayer : ModPlayer
+    public class PlayerCountBuff : ModPlayer
     {
-        public List<ModCountBuff> PlayerCountBuff = new();
+        public List<ModCountBuff> PlayerCountBuffs = new();
 
         public void AddBuff<T>(T buff, int time, int count) where T : ModCountBuff
         {
@@ -106,7 +107,7 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
                 return;
 
             var buffType = ModCountBuff.GetModBuffType(buff.GetType());
-            foreach (var existingBuff in PlayerCountBuff.OfType<T>())
+            foreach (var existingBuff in PlayerCountBuffs.OfType<T>())
             {
                 if (ModCountBuff.GetModBuffType(existingBuff.GetType()) == buffType)
                 {
@@ -128,14 +129,14 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
             buff.Time = time;
             buff.BuffCount = count;
             buff.TimePerCount = time;
-            PlayerCountBuff.Add(buff);
+            PlayerCountBuffs.Add(buff);
         }
 
-        public override void PreUpdateBuffs()
+        public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright)
         {
-            for (int i = PlayerCountBuff.Count - 1; i >= 0; i--)
+            for (int i = PlayerCountBuffs.Count - 1; i >= 0; i--)
             {
-                var countBuff = PlayerCountBuff[i];
+                var countBuff = PlayerCountBuffs[i];
                 if (countBuff == null)
                     continue;
 
@@ -161,12 +162,13 @@ namespace MiroonOS.MiroonUtils.CountBuffUtils
                     else
                     {
                         countBuff.Update(Player, countBuff.Time);
+                        countBuff.Draw(Player, i, PlayerCountBuffs.Count);
                         countBuff.Time--;
                     }
                 }
                 else
                 {
-                    PlayerCountBuff.RemoveAt(i);
+                    PlayerCountBuffs.RemoveAt(i);
                 }
             }
         }
